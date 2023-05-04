@@ -11,10 +11,10 @@ const Home: Component<HomeProps> = (props) => {
         <div class="hero mt-20 bg-base-200">
             <div class="hero-content text-center">
                 <div class="max-w-2xl">
-                    <h1 class="text-5xl font-bold">Valorant XMPP Log Viewer</h1>
+                    <h1 class="text-5xl font-bold">Valorant XMPP Playground</h1>
                     <p class="py-6">
-                        This is a simple tool to view XMPP logs from Valorant.
-                        Use <a class="link" href="https://github.com/techchrism/valorant-xmpp-logger">Valorant XMPP Logger</a> to get XMPP logs.
+                        This is a tool to send and view Valorant XMPP messages.
+                        Based on <a class="link" href="https://github.com/techchrism/valorant-xmpp-log-viewer">Valorant XMPP Log Viewer</a>.
                     </p>
 
                     <FileUpload onParse={props.onUpload}/>

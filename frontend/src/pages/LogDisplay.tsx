@@ -4,7 +4,6 @@ import {FiArrowDownLeft, FiArrowUpRight, FiFilter} from 'solid-icons/fi'
 import '@alenaksu/json-viewer'
 import {VirtualContainer, VirtualItemProps} from '@minht11/solid-virtual-container'
 import LogDisplayListElement from '../components/LogDisplayListElement'
-import GitHubStar from '../components/GitHubStar'
 import LogElementDetails from '../components/LogElementDetails'
 
 // Types for the json-viewer component, modified from https://stackoverflow.com/a/72239265
@@ -54,10 +53,7 @@ const LogDisplay: Component<LogDisplayProps> = (props) => {
             <div class="min-h-screen md:grid md:grid-cols-main">
                 <aside class="md:sticky top-0 left-0 md:h-screen overflow-y-auto" aria-label="Sidebar" ref={sidebarElement}>
                     <div class="sticky top-0 z-10 bg-base-300 py-2">
-                        <h1 class="text-xl font-semibold text-center mb-2">Valorant XMPP Log Viewer</h1>
-                        <div class="text-center pb-2">
-                            <GitHubStar user="techchrism" repo="valorant-xmpp-log-viewer"/>
-                        </div>
+                        <h1 class="text-xl font-semibold text-center mb-2">Valorant XMPP Playground</h1>
 
                         <div class="mx-2 flex flex-row">
                             <input type="text" class="input mr-2 flex-grow" placeholder="Search..." oninput={(e) => {setSearch((e.target as HTMLInputElement).value)}}/>

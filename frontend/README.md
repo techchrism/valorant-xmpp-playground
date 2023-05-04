@@ -1,16 +1,10 @@
-# Valorant XMPP Log Viewer
+# Valorant XMPP Playground Frontend
 
 ## Features
 
 - Parses XMPP XML structures, even those that span multiple messages
 - Allows for quick searching and filtering of messages
 - Displays decoded presence data
-
-## Usage
-
-- Use <https://github.com/techchrism/valorant-xmpp-logger> to generate XMPP log files
-- Visit <https://valxmpplogview.techchrism.me/> and upload the generated log file
-- Browse the individual messages
 
 ## Development
 

@@ -1,9 +1,8 @@
 import type {Component} from 'solid-js'
-import FileUpload from '../components/FileUpload'
-import {ParsedLog} from '../fileParser'
+import WebSocketConnect from '../components/WebSocketConnect'
 
 export type HomeProps = {
-    onUpload: (parsedLog: ParsedLog) => void
+    onWebSocketConnect: (websocket: WebSocket, loadHistory: boolean) => void
 }
 
 const Home: Component<HomeProps> = (props) => {
@@ -17,7 +16,7 @@ const Home: Component<HomeProps> = (props) => {
                         Based on <a class="link" href="https://github.com/techchrism/valorant-xmpp-log-viewer">Valorant XMPP Log Viewer</a>.
                     </p>
 
-                    <FileUpload onParse={props.onUpload}/>
+                    <WebSocketConnect onConnect={props.onWebSocketConnect}/>
                 </div>
             </div>
         </div>

@@ -25,7 +25,7 @@ interface OpenValorantLogEvent extends EventBase {
     port: number
 }
 
-interface DataLogEvent extends EventBase {
+export interface DataLogEvent extends EventBase {
     type: DataEventTypes
     data: string
 }
@@ -81,62 +81,40 @@ function parseData(data: any): ParsedLog['xml'][0]['parsed'] {
     return {type: 'unknown'}
 }
 
-export async function parseFile(file: File): Promise<ParsedLog> {
-    const lines = (await file.text()).split('\n')
-    let header: HeaderData
-    try {
-        header = JSON.parse(lines[0])
-        if(!header.version || header.type !== 'valorant-xmpp-logger') {
-            throw new Error('missing version or type')
+export class StreamingParser {
+    private _inputBuffer: DataLogEvent[] = []
+    private _outputBuffer: DataLogEvent[] = []
+    private _parser: XMLParser
+
+    constructor() {
+        const defaultParserOptions = {
+            ignoreAttributes: false,
+            suppressEmptyNode: true,
+            suppressUnpairedNode: true,
+            attributeNamePrefix: ''
         }
-    } catch(e) {
-        throw new Error(`Invalid log file (bad header - ${e})`)
+        this._parser = new XMLParser(defaultParserOptions)
     }
 
-    const parsed: ParsedLog = {
-        version: header.version,
-        events: [],
-        xml: []
-    }
+    parse(event: DataLogEvent): ParsedLog['xml'][0] | void {
+        if(event.type !== 'outgoing' && event.type !== 'incoming') return
+        if(event.data === ' ' || event.data.startsWith('<?')) return
 
-    for(let i = 1; i < lines.length; i++) {
-        const line = lines[i]
-        if(line.length === 0 || line.startsWith('#')) continue
-
-        parsed.events.push(JSON.parse(line))
-    }
-
-    const defaultParserOptions = {
-        ignoreAttributes: false,
-        suppressEmptyNode: true,
-        suppressUnpairedNode: true,
-        attributeNamePrefix: ''
-    }
-    const xmlParser = new XMLParser(defaultParserOptions)
-
-    let inputBuffer: DataLogEvent[] = []
-    let outputBuffer: DataLogEvent[] = []
-    for(const event of parsed.events) {
-        if(event.type !== 'outgoing' && event.type !== 'incoming') continue
-        if(event.data === ' ' || event.data.startsWith('<?')) continue
-
-        const buffer = (event.type === 'outgoing' ? outputBuffer : inputBuffer)
+        const buffer = (event.type === 'outgoing' ? this._outputBuffer : this._inputBuffer)
         buffer.push(event)
 
         const bufferText = buffer.reduce((prev, curr) => prev + curr.data, '')
         const valid = XMLValidator.validate(`<root>${bufferText}</root>`)
 
         if(valid === true) {
-            const data = xmlParser.parse(bufferText)
-            parsed.xml.push({
+            const data = this._parser.parse(bufferText)
+            const ret = {
                 buffer: [...buffer],
                 data,
                 parsed: parseData(data)
-            })
-
+            }
             buffer.length = 0
+            return ret
         }
     }
-
-    return parsed
 }

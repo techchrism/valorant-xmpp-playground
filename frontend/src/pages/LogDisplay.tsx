@@ -1,5 +1,5 @@
 import {Component, ComponentProps, createMemo, createSignal, Show} from 'solid-js'
-import {ParsedLog} from '../fileParser'
+import {DataLogEvent, ParsedLog, StreamingParser} from '../fileParser'
 import {FiArrowDownLeft, FiArrowUpRight, FiFilter} from 'solid-icons/fi'
 import '@alenaksu/json-viewer'
 import {VirtualContainer, VirtualItemProps} from '@minht11/solid-virtual-container'
@@ -16,10 +16,29 @@ declare module 'solid-js' {
 }
 
 export type LogDisplayProps = {
-    parsedLog: ParsedLog
+    requestHistory: boolean
+    websocket: WebSocket
 }
 
 const LogDisplay: Component<LogDisplayProps> = (props) => {
+    const [messages, setMessages] = createSignal<DataLogEvent[]>([])
+    const [xml, setXml] = createSignal<ParsedLog['xml']>([])
+
+    const streamingParser = new StreamingParser()
+
+    props.websocket.addEventListener('message', (event) => {
+        const data = JSON.parse(event.data) as DataLogEvent
+        setMessages(m => [...m, data])
+        const xmlData = streamingParser.parse(data)
+        if(xmlData) {
+            setXml(x => [...x, xmlData])
+        }
+    })
+
+    if(props.requestHistory) {
+        props.websocket.send(JSON.stringify({type: 'history'}))
+    }
+
     let sidebarElement!: HTMLElement
     const [activeIndex, setActiveIndex] = createSignal(0)
     const [search, setSearch] = createSignal('')
@@ -29,7 +48,7 @@ const LogDisplay: Component<LogDisplayProps> = (props) => {
     const [showOutgoing, setShowOutgoing] = createSignal(true)
 
     const items = createMemo(() => {
-        return props.parsedLog.xml
+        return xml()
             .filter(item => item.buffer[0].type !== 'incoming' || showIncoming())
             .filter(item => item.buffer[0].type !== 'outgoing' || showOutgoing())
             .filter(item => item.buffer.some(buffer => buffer.data.includes(search())))

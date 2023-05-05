@@ -3,10 +3,15 @@ import {XMPPManager} from './XMPPManager'
 import * as winston from 'winston'
 import 'winston-daily-rotate-file'
 import {promises as fs} from 'node:fs'
+import {WebSocketManager} from './WebSocketManager'
 
 interface ConfigFile {
     host: string
     streamID: string
+    websocket: {
+        port: number
+        host: string
+    }
 }
 
 (async () => {
@@ -40,7 +45,12 @@ interface ConfigFile {
 
     const credentialManager = new CredentialManager(logger)
     const xmppManager = new XMPPManager(credentialManager, logger)
+    const websocketManager = new WebSocketManager(logger, xmppManager)
+
     await xmppManager.connect(config.host, config.streamID)
+    await websocketManager.start(config.websocket.port, config.websocket.host)
+
+    logger.info(`Started WebSocket server on ${config.websocket.host}:${config.websocket.port}`)
 })()
 
 export {}

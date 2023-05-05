@@ -6,7 +6,8 @@
         "strict": true,
         "declaration": true,
         "downlevelIteration": true,
-        "outDir": "./dist"
+        "outDir": "./dist",
+        "allowSyntheticDefaultImports": true
     },
     "include": ["src/**/*"]
 }

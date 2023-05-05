@@ -1,0 +1,8 @@
+{
+    "host": "br.chat.si.riotgames.com",
+    "streamID": "br1",
+    "websocket": {
+        "port": 19027,
+        "host": "localhost"
+    }
+}

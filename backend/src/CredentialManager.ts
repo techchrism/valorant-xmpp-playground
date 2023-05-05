@@ -1,4 +1,5 @@
 import {promises as fs} from 'node:fs'
+import {Logger} from "winston";
 import fetch from "node-fetch";
 
 // From https://github.com/techchrism/valorant-api/blob/trunk/src/credentialManager/LocalCredentialManager.ts

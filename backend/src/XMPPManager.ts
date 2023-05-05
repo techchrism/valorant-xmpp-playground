@@ -5,14 +5,23 @@ import {Logger} from "winston";
 import fetch from "node-fetch";
 import {clearInterval} from "timers";
 import * as fs from 'node:fs'
+import {EventEmitter} from 'node:events'
 
-export class XMPPManager {
+export interface HistoryItem {
+    type: 'incoming' | 'outgoing'
+    time: number
+    data: string
+}
+
+export class XMPPManager extends EventEmitter {
     private readonly _credentialManager: CredentialManager
     private readonly _logger: Logger
     private _socket: TLSSocket | null = null
     private _requestID = 0
+    private _history: HistoryItem[] = []
 
     constructor(credentialManager: CredentialManager, logger: Logger) {
+        super()
         this._credentialManager = credentialManager
         this._logger = logger
     }
@@ -28,12 +37,19 @@ export class XMPPManager {
     }
 
     private async _asyncSocketWriteLog(socket: TLSSocket, logStream: fs.WriteStream, data: string) {
-        logStream.write(JSON.stringify({
+        const message: HistoryItem = {
             type: 'outgoing',
             time: Date.now(),
             data
-        }) + '\n')
+        }
+        this.emit('message', message)
+        this._history.push(message)
+        logStream.write(JSON.stringify(message) + '\n')
         await asyncSocketWrite(socket, data)
+    }
+
+    getHistory() {
+        return this._history
     }
 
     async connect(host: string, streamID: string) {
@@ -57,14 +73,18 @@ export class XMPPManager {
             port: 5223
         })
         await waitForConnect(this._socket)
+        this._history = []
         this._requestID = 0
 
         this._socket.on('data', data => {
-            logStream.write(JSON.stringify({
+            const message: HistoryItem = {
                 type: 'incoming',
                 time: Date.now(),
                 data: data.toString()
-            }) + '\n')
+            }
+            this.emit('message', message)
+            this._history.push(message)
+            logStream.write(JSON.stringify(message) + '\n')
         })
         this._socket.on('error', err => {
             this._logger.warn({xmppError: err})

@@ -5,6 +5,7 @@ import '@alenaksu/json-viewer'
 import {VirtualContainer, VirtualItemProps} from '@minht11/solid-virtual-container'
 import LogDisplayListElement from '../components/LogDisplayListElement'
 import LogElementDetails from '../components/LogElementDetails'
+import {AiOutlineWarning} from 'solid-icons/ai'
 
 // Types for the json-viewer component, modified from https://stackoverflow.com/a/72239265
 declare module 'solid-js' {
@@ -23,6 +24,7 @@ export type LogDisplayProps = {
 const LogDisplay: Component<LogDisplayProps> = (props) => {
     const [messages, setMessages] = createSignal<DataLogEvent[]>([])
     const [xml, setXml] = createSignal<ParsedLog['xml']>([])
+    const [connected, setConnected] = createSignal(true)
 
     const streamingParser = new StreamingParser()
 
@@ -33,6 +35,9 @@ const LogDisplay: Component<LogDisplayProps> = (props) => {
         if(xmlData) {
             setXml(x => [...x, xmlData])
         }
+    })
+    props.websocket.addEventListener('close', () => {
+        setConnected(false)
     })
 
     if(props.requestHistory) {
@@ -60,7 +65,7 @@ const LogDisplay: Component<LogDisplayProps> = (props) => {
             <>
                 <li style={props.style} class='w-full' tabIndex={props.tabIndex} role="listitem">
                     <a class="w-full py-1 px-2 border-y border-base-100" classList={{active: props.index === activeIndex()}} onClick={() => setActiveIndex(props.index)}>
-                        <LogDisplayListElement item={props.item} />
+                        <LogDisplayListElement item={props.item}/>
                     </a>
                 </li>
             </>
@@ -91,11 +96,21 @@ const LogDisplay: Component<LogDisplayProps> = (props) => {
                             </div>
                         </div>
                     </div>
+
                     <ul class="menu bg-base-200 text-base-content">
                         <VirtualContainer items={items()} itemSize={{height: 58}} scrollTarget={sidebarElement}>
                             {ListItem}
                         </VirtualContainer>
                     </ul>
+
+                    <Show when={!connected()}>
+                        <div class="sticky bottom-0 z-10 alert alert-warning rounded-none">
+                            <div>
+                                <AiOutlineWarning/>
+                                <span>Websocket disconnected</span>
+                            </div>
+                        </div>
+                    </Show>
                 </aside>
                 <main class="p-5 flex flex-col space-y-5">
                     <Show when={activeItem()}>

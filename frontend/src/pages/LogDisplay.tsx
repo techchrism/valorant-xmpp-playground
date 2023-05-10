@@ -1,11 +1,16 @@
 import {Component, ComponentProps, createMemo, createSignal, Show} from 'solid-js'
 import {DataLogEvent, ParsedLog, StreamingParser} from '../fileParser'
-import {FiArrowDownLeft, FiArrowUpRight, FiFilter} from 'solid-icons/fi'
+import {FiActivity, FiArrowDownLeft, FiArrowUpRight, FiFilter} from 'solid-icons/fi'
 import '@alenaksu/json-viewer'
 import {VirtualContainer, VirtualItemProps} from '@minht11/solid-virtual-container'
 import LogDisplayListElement from '../components/LogDisplayListElement'
 import LogElementDetails from '../components/LogElementDetails'
 import {AiOutlineWarning} from 'solid-icons/ai'
+import {FaSolidPlus} from 'solid-icons/fa'
+import MessageAdd from '../components/MessageAdd'
+import {OcPersonadd2} from 'solid-icons/oc'
+import {VsJson} from 'solid-icons/vs'
+import {BsFiletypeXml} from 'solid-icons/bs'
 
 // Types for the json-viewer component, modified from https://stackoverflow.com/a/72239265
 declare module 'solid-js' {
@@ -60,6 +65,12 @@ const LogDisplay: Component<LogDisplayProps> = (props) => {
     })
     const activeItem = createMemo(() => items()[activeIndex()])
 
+    let addModalCheckbox: HTMLInputElement
+    const onMessageSend = (message: string) => {
+        addModalCheckbox.checked = false
+        props.websocket.send(JSON.stringify({type: 'send', data: message}))
+    }
+
     const ListItem = (props: VirtualItemProps<ParsedLog['xml'][0]>) => {
         return (
             <>
@@ -74,6 +85,14 @@ const LogDisplay: Component<LogDisplayProps> = (props) => {
 
     return (
         <>
+            <input type="checkbox" id="add-modal" class="modal-toggle" ref={addModalCheckbox}/>
+            <div class="modal">
+                <div class="modal-box relative z-50">
+                    <label for="add-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+                    <MessageAdd onSend={onMessageSend}/>
+                </div>
+            </div>
+
             <div class="min-h-screen md:grid md:grid-cols-main">
                 <aside class="md:sticky top-0 left-0 md:h-screen overflow-y-auto" aria-label="Sidebar" ref={sidebarElement}>
                     <div class="sticky top-0 z-10 bg-base-300 py-2">
@@ -94,6 +113,14 @@ const LogDisplay: Component<LogDisplayProps> = (props) => {
                                     </label>
                                 </div>
                             </div>
+                        </div>
+
+
+                        <div class="mt-2 px-2 w-full">
+                            <label class="btn btn-block gap-2" for="add-modal">
+                                <FaSolidPlus />
+                                Add Message
+                            </label>
                         </div>
                     </div>
 
